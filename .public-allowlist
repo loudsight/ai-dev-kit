@@ -1,0 +1,2 @@
+# Substrings the public repo may contain although they match the private denylist, one per line.
+# Each is blanked out of a line before the denylist is applied, so list only what is meant to be public.

@@ -1,0 +1,17 @@
+{
+  "autoMemoryEnabled": false,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/bulk-read-guard.sh\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# pre-commit: holds shell and Python scripts to their high-water mark on every commit, and checks command and script conventions
+# (and the size of AGENTS.md) when a commit touches them.
+#
+# Bypass for an emergency only: SKIP_SCRIPT_CONVENTIONS=1 git commit ...
+set -uo pipefail
+
+[ "${SKIP_SCRIPT_CONVENTIONS:-0}" = "1" ] && exit 0
+root="$(git rev-parse --show-toplevel)"
+syn="$root/tools/syn/syn"
+
+"$syn" script-check-ceiling || {
+    echo "pre-commit: shell/Python high-water mark exceeded (see AGENTS.md, Scripts)" >&2
+    exit 1
+}
+
+if git diff --cached --name-only | grep -qE '^(scripts/|plugins/|AGENTS\.md$)'; then
+    "$syn" script-check-conventions || {
+        echo "pre-commit: script conventions failed" >&2
+        exit 1
+    }
+fi
+exit 0
