@@ -18,6 +18,9 @@ If that is too heavy, you have two choices:
 2. **Write the head for your stack.** The contract is small: find commands, enforce a tier, run one. The commands' behaviour is
    described in each command's class comment. This is a project, not a configuration change.
 
+**Windows:** the kit assumes a POSIX shell, so on Windows use git bash; see "Windows (git bash)" in `QUICKSTART.md`. That section
+is untested, and the `syn` engine has only been run on macOS and Linux.
+
 **Tune per repository:** the `AGENTS.md` build section; `.syn/config.properties` (instruction file name and size cap, ceiling
 manifest, the directories the catalog scans); the bulk-read threshold; the plan-inbox link in `QUICKSTART.md` if you do not use
 Claude Code.
