@@ -11,7 +11,7 @@ root="$(git rev-parse --show-toplevel)"
 syn="$root/tools/syn/syn"
 
 "$syn" script-check-ceiling || {
-    echo "pre-commit: shell/Python high-water mark exceeded (see AGENTS.md, Scripts)" >&2
+    echo "pre-commit: script-check-ceiling failed: the shell/Python high-water mark was exceeded, or syn could not start (read the output above; see AGENTS.md, Scripts)" >&2
     exit 1
 }
 

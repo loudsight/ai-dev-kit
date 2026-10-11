@@ -26,8 +26,10 @@ Needs: Java 25 and Maven on `PATH`, git, and (for the file-size guard) `jq`.
 
 ## Windows (git bash)
 
-Run everything from **git bash** (Git for Windows), not PowerShell or cmd. **None of this has been run on Windows yet**: treat the notes as
-what to expect, and tell us where it differs. Claude Code on Windows also runs its shell commands through git bash.
+Run everything from **git bash** (Git for Windows), not PowerShell or cmd. **Status:** one cold-start run on Windows 10, git 2.52, JDK 25 and Maven 3.9 (2026-10-11) confirmed that
+LF endings survive checkout, that `ln -s` produces copies, that a junction works (in a scratch home directory), and that the bulk-read guard
+denies a large read and fails open without `jq`. It found the classpath failure below, and `syn` has not run end to end on Windows since the fix.
+Treat the rest as what to expect, and tell us where it differs. Claude Code on Windows also runs its shell commands through git bash.
 
 - **Line endings.** The kit ships a `.gitattributes` that forces LF on shell scripts, because Git for Windows defaults to
   `core.autocrlf=true`, which would otherwise give them CRLF and break `#!/bin/sh`. If a script fails with `\r: command not found`, check
@@ -40,8 +42,13 @@ what to expect, and tell us where it differs. Claude Code on Windows also runs i
   exported (and `git config core.symlinks true` before cloning). A copy of `kb/skills` goes stale; a copy of the plans inbox would
   silently catch plans in the wrong place. For the plans inbox, a directory junction needs no elevation:
   `cmd //c mklink //J "%USERPROFILE%\.claude\plans" "<repo path>\kb\plans\inbox"`.
-- **The `syn` launcher** passes a wildcard classpath and `-D` paths to `java`, and git bash may rewrite arguments that look like paths. If
-  `tools/syn/syn catalog` fails there, the first thing to try is `MSYS_NO_PATHCONV=1 tools/syn/syn catalog`.
+- **The `syn` launcher** and the classpath. On the first Windows run, `java` failed with `ClassNotFoundException: com.loudsight.syn.cli.Syn`:
+  git bash converts POSIX-looking arguments to Windows paths for `java.exe` but skips any argument containing a wildcard, so
+  `-cp .syn-cache/lib/*` arrived as `/c/...` and matched no jar. `MSYS_NO_PATHCONV=1` does not help, because it only disables
+  conversion. The launcher now passes the drive-letter form on Windows (`cygpath -m`); that change is untested on Windows. If it still
+  fails, run `java` once from `cmd.exe` or PowerShell with `-cp C:/path/to/.syn-cache/lib/*`.
+- **A failing pre-commit hook may not mean a ceiling breach.** `script-check-ceiling` runs through the launcher, so if `syn` cannot
+  start, the hook rejects every commit with a ceiling message. Read the output above that line.
 - **Executable bit.** NTFS has none. `script-check-conventions` reports scripts as not executable when git does not record the bit:
   `git update-index --chmod=+x <file>` records it.
 
