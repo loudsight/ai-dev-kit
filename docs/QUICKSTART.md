@@ -28,7 +28,7 @@ Needs: Java 25 and Maven on `PATH`, git, and (for the file-size guard) `jq`.
 
 Run everything from **git bash** (Git for Windows), not PowerShell or cmd. **Status:** one cold-start run on Windows 10, git 2.52, JDK 25 and Maven 3.9 (2026-10-11) confirmed that
 LF endings survive checkout, that `ln -s` produces copies, that a junction works (in a scratch home directory), and that the bulk-read guard
-denies a large read and fails open without `jq`. It found the classpath failure below, and `syn` has not run end to end on Windows since the fix.
+denies a large read and fails open without `jq`. It found the classpath failure below; a rerun with the fixed launcher then passed the catalog, the ceiling check with `--raise`, and the conventions check.
 Treat the rest as what to expect, and tell us where it differs. Claude Code on Windows also runs its shell commands through git bash.
 
 - **Line endings.** The kit ships a `.gitattributes` that forces LF on shell scripts, because Git for Windows defaults to
@@ -45,7 +45,7 @@ Treat the rest as what to expect, and tell us where it differs. Claude Code on W
 - **The `syn` launcher** and the classpath. On the first Windows run, `java` failed with `ClassNotFoundException: com.loudsight.syn.cli.Syn`:
   git bash converts POSIX-looking arguments to Windows paths for `java.exe` but skips any argument containing a wildcard, so
   `-cp .syn-cache/lib/*` arrived as `/c/...` and matched no jar. `MSYS_NO_PATHCONV=1` does not help, because it only disables
-  conversion. The launcher now passes the drive-letter form on Windows (`cygpath -m`); that change is untested on Windows. If it still
+  conversion. The launcher now passes the drive-letter form on Windows (`cygpath -m`); that change was confirmed on Windows by a second run. If it still
   fails, run `java` once from `cmd.exe` or PowerShell with `-cp C:/path/to/.syn-cache/lib/*`.
 - **A failing pre-commit hook may not mean a ceiling breach.** `script-check-ceiling` runs through the launcher, so if `syn` cannot
   start, the hook rejects every commit with a ceiling message. Read the output above that line.
