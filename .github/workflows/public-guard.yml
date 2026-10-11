@@ -14,6 +14,12 @@ name: public-guard
 # The private denylist is the repository secret PRIVATE_DENYLIST (one fixed string per line, the same file as
 # ~/.config/syn/private-denylist.txt). Without it the job fails closed, except on a fork's pull request, which GitHub never
 # gives secrets to: there only the secret scan runs. Findings name the denylist line number, never its text, so the log is safe.
+#
+# THIS COPY (in the ai-dev-kit template) differs from the canonical one in one line: the job below runs only in the repository named
+# in its `if`. A repository made from the template inherits this file but has no PRIVATE_DENYLIST, and would show a failed run on
+# every push. Without the `if` the job fails closed, which is right for a repository that has a denylist. Re-apply the `if` after
+# running `syn publish-install-hooks --ci` here, which rewrites the file. A repository of your own that wants the guard: delete the
+# `if` line and set the secret (`syn publish-install-hooks --help`).
 on:
   push:
   pull_request:
@@ -23,6 +29,7 @@ permissions:
 
 jobs:
   guard:
+    if: github.repository == 'loudsight/ai-dev-kit'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

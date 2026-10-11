@@ -54,3 +54,7 @@ When you repeat a task for the second time, `tools/syn/syn script-create-scaffol
 
 `tools/syn/syn publish-install-hooks --help`. It installs hooks and a CI workflow that fail a commit or push containing a private
 string or a secret. The list of private strings lives outside the repository.
+
+The template carries a CI workflow, `.github/workflows/public-guard.yml`, that is switched off in your repository: its job runs only in
+the repository named in its `if` line, because the check needs a denylist you do not have yet. When you have one, set the repository secret
+`PRIVATE_DENYLIST` and delete that `if` line (or rerun `publish-install-hooks --ci`, which writes the unconditional version).
