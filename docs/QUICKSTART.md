@@ -39,7 +39,7 @@ what to expect, and tell us where it differs. Claude Code on Windows also runs i
 - **Symlinks (steps 6 and 7).** `ln -s` in git bash copies the target unless Windows Developer Mode is on and `MSYS=winsymlinks:nativestrict` is
   exported (and `git config core.symlinks true` before cloning). A copy of `kb/skills` goes stale; a copy of the plans inbox would
   silently catch plans in the wrong place. For the plans inbox, a directory junction needs no elevation:
-  `cmd //c mklink //J "%USERPROFILE%\\.claude\\plans" "<repo path>\\kb\\plans\\inbox"`.
+  `cmd //c mklink //J "%USERPROFILE%\.claude\plans" "<repo path>\kb\plans\inbox"`.
 - **The `syn` launcher** passes a wildcard classpath and `-D` paths to `java`, and git bash may rewrite arguments that look like paths. If
   `tools/syn/syn catalog` fails there, the first thing to try is `MSYS_NO_PATHCONV=1 tools/syn/syn catalog`.
 - **Executable bit.** NTFS has none. `script-check-conventions` reports scripts as not executable when git does not record the bit:
