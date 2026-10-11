@@ -1,0 +1,8 @@
+# Shell scripts must keep LF line endings in every checkout. On Windows, Git for Windows defaults to core.autocrlf=true, which
+# would give them CRLF and break `#!/bin/sh` ("\r: command not found").
+* text=auto
+*.sh text eol=lf
+*.tmpl text eol=lf
+tools/syn/syn text eol=lf
+scripts/git-hooks/* text eol=lf
+.claude/hooks/* text eol=lf
