@@ -9,10 +9,12 @@ Needs: Java 25 and Maven on `PATH`, git, and (for the file-size guard) `jq`.
    `.gitignore` here does).
 3. **Install the hooks:** `scripts/git-hooks/install.sh`. From now on a commit runs `script-check-ceiling`, and
    `script-check-conventions` when it touches scripts, plugins or `AGENTS.md`.
-4. **Record the shell ceiling:** `tools/syn/syn script-check-ceiling --baseline` writes `scripts/legacy-scripts.tsv`, the manifest
-   of shell and Python you already have. Commit it. The ceiling may only go down from here.
-   Then `tools/syn/syn script-list-catalog --markdown` writes `scripts/INDEX.md`, the generated index of commands and scripts
-   (`script-check-conventions` fails when it is stale). Both read git's file list, so `git add` your files first.
+4. **Set your shell ceiling.** `scripts/legacy-scripts.tsv` is the high-water mark for shell and Python files (it ships with the
+   mark for this kit's own five files). Once you add the files you copy in, `script-check-ceiling` fails until you accept the new
+   figures with a reason the reviewer sees: `tools/syn/syn script-check-ceiling --raise "existing scripts"`. From then on the
+   mark may only fall (`--lower`). Then `tools/syn/syn script-list-catalog --markdown` rewrites `scripts/INDEX.md`, the generated
+   index of commands and scripts (`script-check-conventions` fails when it is stale). Both read git's file list, so `git add`
+   your files first.
 5. **Edit `AGENTS.md`:** fill in the build and verify commands and the local-tooling notes, and delete what does not fit. Keep it
    under 12,000 characters; `tools/syn/syn script-check-conventions` checks.
 6. **Give your agent the skills.** Claude Code reads skills from `.claude/skills/`:

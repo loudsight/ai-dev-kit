@@ -1,0 +1,10 @@
+# High-water mark for shell/Python scripts - written by syn script-check-ceiling, never by hand.
+# The file count, line total and inline-interpreter count may only fall.
+# 2026-10-11 baseline: 5 files, 124 lines, 0 inline
+inline-interpreter-calls	0
+path	lines	category
+.claude/hooks/bulk-read-guard.sh	58	unclassified
+scripts/git-hooks/install.sh	10	unclassified
+scripts/git-hooks/pre-commit	24	unclassified
+scripts/myEnv.sh	17	unclassified
+tools/syn/syn	15	unclassified
