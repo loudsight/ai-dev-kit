@@ -51,7 +51,7 @@ expensive. So:
 9. **Hand over.** Rewrite (never append to) one `**Handover <date>**` paragraph in the plan: what is unverified, what is
    waiting on a person, pointers the next round needs.
 10. **Report** the table in a few lines (landed, broken, waiting, needs-split, what the user must decide) and commit the plan
-    file with an exact-path `git add`. If ready rows remain, start the next round.
+    file with an exact-path `git add`. If ready rows remain and context is not nearly full, start the next round; stop when no row is ready or context is nearly full.
 
 ## Worker prompt (self-contained; the worker sees nothing else)
 
@@ -71,7 +71,7 @@ the verify command's result (pass/fail and failing test names), anything left un
 ## Verifier prompt (a general agent on a smaller, faster model, in the main tree)
 
 ```
-Verify the main tree at <path>. Do not edit code or create worktrees. Run: <verify commands for the changed modules>.
+Verify the main tree at <path>. Do not edit code or create worktrees. Run: <build/test command per module>.
 Never skip tests. Output is long: filter it for pass/fail and failure lines.
 Reply in at most 3 lines per module: pass/fail, test count, failing test names.
 ```

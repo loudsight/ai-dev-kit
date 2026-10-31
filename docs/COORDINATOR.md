@@ -22,15 +22,20 @@ forward to that branch with no merge commit. Row statuses: `ready` (can be dispa
 Needs: git 2.17 or later, an agent that can start background subagents (Claude Code does), and a test or check command per
 task. From [QUICKSTART.md](QUICKSTART.md) you need only step 1 (copy the files, including `docs/COORDINATOR.md`, which the skill
 and template link to) and step 6 (link the skills); the hooks, ceiling and `AGENTS.md` steps are optional here. Java 25 and
-Maven are needed only for the final verify command. Examples use `main`; use your main branch's name.
+Maven are needed only for the final verify command. Examples use `main`; use your main branch's name, and in a toy repository
+create it with `git init -b main` if your git defaults to `master`.
+
+Without an agent that can run background subagents, run each worker yourself: open one agent session per worktree (in that
+directory), paste the same worker prompt, and bring the reply back to the coordinator session.
 
 ## Set up
 
 0. **Commit the kit files first** (QUICKSTART step 1) so that worktrees cut from `main` contain `kb/`, `AGENTS.md` and the rest:
-   `git add AGENTS.md CLAUDE.md kb docs tools scripts .claude .syn && git commit -m "Add ai-dev-kit"`
+   `git add AGENTS.md CLAUDE.md .gitignore .gitattributes kb docs tools scripts .claude .syn && git commit -m "Add ai-dev-kit"`
+   Never commit `tools/syn/.syn-cache/` (a downloaded cache; `.gitignore` excludes it, so do not copy it over).
 1. **Link the skill** (skip if QUICKSTART step 6 already linked all of `kb/skills/`):
    `mkdir -p .claude/skills && ln -s ../../kb/skills/coordinate .claude/skills/coordinate`
-2. **Create the plan from the template:** `cd kb/plans && cp coordinator-plan.template.md coordinator-plan.md && cd ../..`, then open the new file, **delete the sample row** and rewrite the Handover line.
+2. **Create the plan from the template:** `cd kb/plans && cp coordinator-plan.template.md coordinator-plan.md && cd ../..`, then open the new file, **delete the `EXAMPLE` row (keep the table header)** and rewrite the Handover line.
 3. **Commit both** so the main tree is clean: `cd kb/plans && git add coordinator-plan.md && cd ../.. && git add .claude/skills/coordinate && git commit -m "Add coordinator plan"`
 4. **Start your agent in the main tree** and run `/coordinate` followed by one quoted line per task. Say which files each task touches in the line (as below); if you leave it out, the coordinator infers it from the goal and asks when unsure.
 
@@ -105,7 +110,7 @@ git commit -m "Coordinator: T1, T2 landed"
 cd ../..
 ```
 
-Table after (`<sha>` is the commit SHA from the worker's reply):
+Table after (`<sha>` is what `git log --oneline -1` shows on main right after that task's merge; a rebase changes the worker's SHA, so do not copy the one from its reply):
 
 | id | goal | tree | status | sha | verify | next action |
 |---|---|---|---|---|---|---|
@@ -131,4 +136,4 @@ Table after (`<sha>` is the commit SHA from the worker's reply):
 
 After the example, the main tree has both files and no extra trees:
 `git worktree list && test -s docs/glossary.md && test -s docs/faq.md && tools/syn/syn kb-check-links`
-The list shows one line, and the other commands exit 0. Only the last command needs Java 25 and Maven; the rest need git alone.
+The list shows one line, and the other commands exit 0. Only the last command needs Java 25 and Maven; the rest need git alone. The first `syn` run downloads from Maven Central, so it needs network access.
