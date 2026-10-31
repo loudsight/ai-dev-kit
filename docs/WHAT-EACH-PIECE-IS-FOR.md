@@ -57,3 +57,6 @@ traps (a zsh variable named `path`; no GNU `timeout` on macOS).
 For a repository that is, or will be, public: `publish-check-private` fails a commit or push (and a CI check, as a backstop) that
 carries a string from a private list you keep outside the repository, or a secret-shaped string. It fails closed. See
 `tools/syn/syn publish-install-hooks --help`.
+
+*Optional, not shipped in this kit:* the source repository also wires a `syn push-check-refs` command into its pre-push hook, which
+refuses a push of any branch but `master`. Add it yourself if you want the same rule.
