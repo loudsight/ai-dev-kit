@@ -15,10 +15,11 @@ and only their short reports enter your context. State lives in the `coordinator
 Long-lived coordinators that relayed status by message and polled for results grew their context until each call was
 expensive. So:
 
-- Use a cheap model at low effort. Do not read code, logs or diffs; workers do, and reply in at most 15 lines.
+- Use a smaller, faster model at low effort (how you choose one is specific to your agent; check its model setting). Do not read code, logs or diffs; workers do, and reply in at most 15 lines.
 - Keep command output out of this session. You run only `git worktree`, `git merge` and plan edits. Test runs on the main
   tree go to a verifier agent (below).
-- Read only the plan file at the start. If it is absent, the table is empty.
+- Read only the plan file at the start. If it is absent, the table is empty. If it still holds the template's sample row
+  (marked `EXAMPLE`), ignore and delete that row.
 - No polling, no sleep loops, no status messages to workers. Dispatch in the background and wait for completion
   notifications.
 - A task must fit one worker slice (under about 150k tokens of context). A bigger one is split in the table, not dispatched.
@@ -67,7 +68,7 @@ Reply in at most 15 lines: status (done | blocked | needs-split), commit SHA, ou
 the verify command's result (pass/fail and failing test names), anything left undone.
 ```
 
-## Verifier prompt (a general agent, cheap model, in the main tree)
+## Verifier prompt (a general agent on a smaller, faster model, in the main tree)
 
 ```
 Verify the main tree at <path>. Do not edit code or create worktrees. Run: <verify commands for the changed modules>.

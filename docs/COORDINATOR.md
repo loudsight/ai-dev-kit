@@ -1,7 +1,7 @@
 # Coordinator
 
 A coordinator is one agent session that does no coding. It keeps a table of tasks, gives each ready task to a background
-worker in its own git worktree, lands the finished ones onto your main branch one at a time, and has a cheap verifier check
+worker in its own git worktree, lands the finished ones onto your main branch one at a time, and has a smaller, faster verifier agent check
 the result. You get parallel work without parallel agents editing one checkout.
 
 **Why a table and short sessions.** Early coordinators ran for days, relayed status by message and polled for results. The
@@ -14,24 +14,32 @@ task table (file)  ->  coordinator  ->  worker A (worktree wt-t1)  ->  report
                        coordinator lands A, then B (fast-forward)  ->  verifier  ->  table updated
 ```
 
-Needs: git 2.17 or later, an agent that can start background subagents (Claude Code does), a repository with this kit's
-`kb/` and a test or check command per task. Follow [QUICKSTART.md](QUICKSTART.md) first. Examples use `main`; use your main
-branch's name.
+**Terms.** A *worktree* is a second checkout of the same repository in its own directory, on its own branch, so a worker can
+edit without touching your files. *Rebase* replays a branch's commits on top of the latest main. *Fast-forward* moves main
+forward to that branch with no merge commit. Row statuses: `ready` (can be dispatched), `running` (a worker has it), `landed`
+(merged into main and verified), `broken` (merged but the verifier failed); the full list is in the plan template.
+
+Needs: git 2.17 or later, an agent that can start background subagents (Claude Code does), and a test or check command per
+task. From [QUICKSTART.md](QUICKSTART.md) you need only step 1 (copy the files, including `docs/COORDINATOR.md`, which the skill
+and template link to) and step 6 (link the skills); the hooks, ceiling and `AGENTS.md` steps are optional here. Java 25 and
+Maven are needed only for the final verify command. Examples use `main`; use your main branch's name.
 
 ## Set up
 
+0. **Commit the kit files first** (QUICKSTART step 1) so that worktrees cut from `main` contain `kb/`, `AGENTS.md` and the rest:
+   `git add AGENTS.md CLAUDE.md kb docs tools scripts .claude .syn && git commit -m "Add ai-dev-kit"`
 1. **Link the skill** (skip if QUICKSTART step 6 already linked all of `kb/skills/`):
    `mkdir -p .claude/skills && ln -s ../../kb/skills/coordinate .claude/skills/coordinate`
-2. **Create the plan from the template:** `cd kb/plans && cp coordinator-plan.template.md coordinator-plan.md && cd ../..`
-3. **Commit both** so the main tree is clean: `git add .claude/skills/coordinate && git -C kb/plans add coordinator-plan.md && git commit -m "Add coordinator plan"`
-4. **Start your agent in the main tree** and run `/coordinate` followed by one line per task.
+2. **Create the plan from the template:** `cd kb/plans && cp coordinator-plan.template.md coordinator-plan.md && cd ../..`, then open the new file, **delete the sample row** and rewrite the Handover line.
+3. **Commit both** so the main tree is clean: `cd kb/plans && git add coordinator-plan.md && cd ../.. && git add .claude/skills/coordinate && git commit -m "Add coordinator plan"`
+4. **Start your agent in the main tree** and run `/coordinate` followed by one quoted line per task. Say which files each task touches in the line (as below); if you leave it out, the coordinator infers it from the goal and asks when unsure.
 
 ## Worked example: two independent toy tasks
 
 In a scratch repository set up as above, start a session and type:
 
 ```
-/coordinate "Add docs/glossary.md with five terms, one per line. Verify: test -s docs/glossary.md" "Add docs/faq.md with three questions. Verify: test -s docs/faq.md"
+/coordinate "Add five terms, one per line. Touches: docs/glossary.md. Verify: test -s docs/glossary.md" "Add three questions. Touches: docs/faq.md. Verify: test -s docs/faq.md"
 ```
 
 The coordinator adds two rows. The files differ, so the tasks are independent. Table before:
@@ -41,7 +49,7 @@ The coordinator adds two rows. The files differ, so the tasks are independent. T
 | T1 | Add `docs/glossary.md`, five terms | | ready | | `test -s docs/glossary.md` | dispatch |
 | T2 | Add `docs/faq.md`, three questions | | ready | | `test -s docs/faq.md` | dispatch |
 
-It creates the trees (this is what you could run yourself):
+The worker prompt template is in [the skill](../kb/skills/coordinate/SKILL.md). The coordinator creates the trees (you could run these yourself):
 
 ```
 git worktree add -b t1 ../wt-t1 main
@@ -72,15 +80,18 @@ git -C ../wt-t2 rebase main
 git merge --ff-only t2
 ```
 
-T2's rebase picks up T1's commit; the files do not overlap, so it succeeds. A verifier agent then runs the checks on the main
-tree and replies in this shape:
+T2's rebase picks up T1's commit; the files do not overlap, so it succeeds. A verifier agent (the skill's verifier prompt) then runs
+each verify command on the main tree and replies with at most three lines per module: pass or fail, the test count and any
+failing test names.
 
 ```
-docs/glossary.md: pass (test -s)
-docs/faq.md: pass (test -s)
-repo: tools/syn/syn script-check-conventions pass
+docs/glossary.md: pass, 1 check, no failures
+docs/faq.md: pass, 1 check, no failures
+repo: pass, 1 check, no failures
 ```
 
+The `repo:` line is the coordinator's extra check that the kit's own rules still hold after landing
+(`tools/syn/syn script-check-conventions`). It is a convention, not a requirement.
 The coordinator marks both rows `landed`, cleans up, and commits the plan:
 
 ```
@@ -88,11 +99,13 @@ git worktree remove ../wt-t1
 git branch -d t1
 git worktree remove ../wt-t2
 git branch -d t2
-git -C kb/plans add coordinator-plan.md
+cd kb/plans
+git add coordinator-plan.md
 git commit -m "Coordinator: T1, T2 landed"
+cd ../..
 ```
 
-Table after:
+Table after (`<sha>` is the commit SHA from the worker's reply):
 
 | id | goal | tree | status | sha | verify | next action |
 |---|---|---|---|---|---|---|
@@ -118,4 +131,4 @@ Table after:
 
 After the example, the main tree has both files and no extra trees:
 `git worktree list && test -s docs/glossary.md && test -s docs/faq.md && tools/syn/syn kb-check-links`
-The list shows one line, and the other commands exit 0.
+The list shows one line, and the other commands exit 0. Only the last command needs Java 25 and Maven; the rest need git alone.
