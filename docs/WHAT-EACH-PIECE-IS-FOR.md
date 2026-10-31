@@ -17,8 +17,15 @@ auto-memory is switched off in `.claude/settings.json` so there is one memory, i
 
 ## `kb/skills/`: reusable prompts
 
-Five small procedures an agent follows when the situation arises (evidence first, debug by comparison, session close, sweep,
+Small procedures an agent follows when the situation arises (evidence first, debug by comparison, session close, sweep,
 retro). They are plain Markdown; edit them to your habits or delete the ones you will not use.
+
+## `kb/skills/coordinate/` and `docs/COORDINATOR.md`: parallel work
+
+*Failure:* several agents in one checkout overwrite each other's edits, and a long-lived supervising session grows its context
+until every call is expensive. The coordinator skill keeps a task table in a file, gives each task its own git worktree and a
+background worker, lands results one at a time, and ends the session when context is large. See
+[COORDINATOR.md](COORDINATOR.md). *Cost:* tasks must be independent and small; you write the verify command for each.
 
 ## `tools/syn/`: the task CLI
 

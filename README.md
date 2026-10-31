@@ -13,6 +13,7 @@ of your product.
 | Knowledge base | `kb/` | A filing table so each finding has one home; plans hold only work not done |
 | Skills | `kb/skills/*/SKILL.md` | Reusable prompts: evidence first, debug by comparison, session close, sweep, retro |
 | Task CLI | `tools/syn/` | `syn catalog`, command scaffold, convention and shell-ceiling checks, dead-link check, public-repo guard |
+| Coordinator | `docs/COORDINATOR.md`, `kb/skills/coordinate/` | Run tasks in parallel git worktrees from a task table; land them one at a time |
 | Hooks | `scripts/git-hooks/`, `.claude/` | Pre-commit checks; a guard against reading huge files whole |
 | Environment | `scripts/myEnv.sh` | Toolchain on `PATH` in a shell that lacks it |
 
