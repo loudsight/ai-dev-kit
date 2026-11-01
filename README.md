@@ -17,7 +17,7 @@ of your product.
 | Hooks | `scripts/git-hooks/`, `.claude/` | Pre-commit checks; a guard against reading huge files whole |
 | Environment | `scripts/myEnv.sh` | Toolchain on `PATH` in a shell that lacks it |
 
-Start with [`docs/QUICKSTART.md`](docs/QUICKSTART.md). [`docs/WHAT-EACH-PIECE-IS-FOR.md`](docs/WHAT-EACH-PIECE-IS-FOR.md) explains
+Start with [`docs/QUICKSTART.md`](docs/QUICKSTART.md); on a new workstation, give an agent [`docs/BOOTSTRAP.md`](docs/BOOTSTRAP.md) (preflight, decisions, Windows differences, checks). [`docs/WHAT-EACH-PIECE-IS-FOR.md`](docs/WHAT-EACH-PIECE-IS-FOR.md) explains
 each piece and what it costs; [`docs/ADAPT-TO-YOUR-STACK.md`](docs/ADAPT-TO-YOUR-STACK.md) says what to change if you do not use Java.
 
 The `syn` engine and its generic commands are published on Maven Central as `com.loudsight:syn-cli` and
