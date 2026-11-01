@@ -18,6 +18,13 @@ expensive. So:
 - Use a smaller, faster model at low effort (how you choose one is specific to your agent; check its model setting). Do not read code, logs or diffs; workers do, and reply in at most 15 lines.
 - Keep command output out of this session. You run only `git worktree`, `git merge` and plan edits. Test runs on the main
   tree go to a verifier agent (below).
+- The coordinator does bookkeeping only. A coordinator that drifted into running greps, API reads, container relaunches
+  and sed edits itself grew expensive. Allowed here: read and edit the plan, land and sweep worktrees, stop or message
+  agents, commit the plan, and single-line remote reads (such as `git ls-remote`). Everything else goes to an agent.
+- Test before running anything: "could a worker do this and answer in under 5 lines?" If yes, dispatch. Right-size it:
+  a read-only small model for lookups, a mid-size model for mechanical edits and verification, a stronger model only for
+  design or security rows (override the template's default model for those rows).
+- Waiting is a single `Monitor` with re-arms, or a completion notification. Never chain waiter agents.
 - Read only the plan file at the start, its `## Open items` included. If it is absent, the table is empty. If it still holds
   the template's sample row and sample item (marked `EXAMPLE`), ignore and delete them. Your first reply lists the open items that need
   the user's decision (a terse table) before any new work starts.
