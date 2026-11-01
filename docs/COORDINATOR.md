@@ -35,7 +35,7 @@ directory), paste the same worker prompt, and bring the reply back to the coordi
    Never commit `tools/syn/.syn-cache/` (a downloaded cache; `.gitignore` excludes it, so do not copy it over).
 1. **Link the skill** (skip if QUICKSTART step 6 already linked all of `kb/skills/`):
    `mkdir -p .claude/skills && ln -s ../../kb/skills/coordinate .claude/skills/coordinate`
-2. **Create the plan from the template:** `cd kb/plans && cp coordinator-plan.template.md coordinator-plan.md && cd ../..`, then open the new file, **delete the `EXAMPLE` row (keep the table header)** and rewrite the Handover line.
+2. **Create the plan from the template:** `cd kb/plans && cp coordinator-plan.template.md coordinator-plan.md && cd ../..`, then open the new file, **delete the `EXAMPLE` row (keep the table header) and the `EXAMPLE` open item** and rewrite the Handover line. The `## Open items` checklist is the standing list of follow-ups; the coordinator edits it in place and shows you the ones that need a decision at the start of each session.
 3. **Commit both** so the main tree is clean: `cd kb/plans && git add coordinator-plan.md && cd ../.. && git add .claude/skills/coordinate && git commit -m "Add coordinator plan"`
 4. **Start your agent in the main tree** and run `/coordinate` followed by one quoted line per task. Say which files each task touches in the line (as below); if you leave it out, the coordinator infers it from the goal and asks when unsure.
 
