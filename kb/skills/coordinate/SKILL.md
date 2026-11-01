@@ -18,14 +18,27 @@ expensive. So:
 - Use a smaller, faster model at low effort (how you choose one is specific to your agent; check its model setting). Do not read code, logs or diffs; workers do, and reply in at most 15 lines.
 - Keep command output out of this session. You run only `git worktree`, `git merge` and plan edits. Test runs on the main
   tree go to a verifier agent (below).
-- Read only the plan file at the start. If it is absent, the table is empty. If it still holds the template's sample row
-  (marked `EXAMPLE`), ignore and delete that row.
+- Read only the plan file at the start, its `## Open items` included. If it is absent, the table is empty. If it still holds
+  the template's sample row and sample item (marked `EXAMPLE`), ignore and delete them. Your first reply lists the open items that need
+  the user's decision (a terse table) before any new work starts.
 - No polling, no sleep loops, no status messages to workers. Dispatch in the background and wait for completion
   notifications.
 - A task must fit one worker slice (under about 150k tokens of context). A bigger one is split in the table, not dispatched.
 - Only you touch the main tree. Workers never land and never push.
-- End the session when context nears 150k or after any compaction: commit the plan and tell the user to start a fresh
-  session. Never continue after a compaction.
+- The only session-end trigger is context. Follow-up work from the user, or ready rows, start the next round in the same
+  session. At about 150k tokens of context, or after any compaction: commit the plan, tell the user in one line to start a
+  fresh session, and end. Never continue after a compaction.
+
+## Talking to the user
+
+- No prose unless asked for in a follow-up. Report terse: a table or a few lines. Give detail only for decisions that are
+  hard to reverse or have significant implications.
+- Decide with this framework before asking:
+  1. Is the decision easily reversible?
+  2. Which answer gets to a working, valuable product sooner?
+  3. If a reversible decision has a clear winner on 2, take it, record it in the plan row and move on. Only when the
+     framework leaves it unclear, or the decision is hard to reverse, surface it: one question, the options with the
+     trade-off in a line each, and your recommendation.
 
 ## Round
 
@@ -40,7 +53,8 @@ expensive. So:
    working directory.
 5. **Wait** for notifications. Do not inspect the trees.
 6. **On each report**, record the commit SHA and verify result in the row. `blocked` and `needs-split` go to the row's next
-   action, not into more dispatches this round.
+   action, not into more dispatches this round. Every "left undone", "unrelated problems" and "could not determine" line
+   becomes an Open item at once (one line each) unless it was fixed this round.
 7. **Land**, one at a time, only rows reporting `verify: pass`:
    `git -C ../wt-t<n> rebase main`, then in the main tree `git merge --ff-only t<n>`. A conflict or a refusal: run
    `git -C ../wt-t<n> rebase --abort`, record the reason, mark the row `done-unlanded`, go on. Never push.
@@ -48,10 +62,21 @@ expensive. So:
    nothing further this round.
 8. **Clean up** landed trees: `git worktree remove ../wt-t<n>` then `git branch -d t<n>`. Unlanded trees stay and stay in the
    table. `git worktree list` shows what is left.
-9. **Hand over.** Rewrite (never append to) one `**Handover <date>**` paragraph in the plan: what is unverified, what is
-   waiting on a person, pointers the next round needs.
+9. **Hand over.** The plan keeps two things.
+   - A short `**Handover <date>**` paragraph, state only (what is merged, in flight, unverified), rewritten (never
+     appended to) at the end of each round and before the session ends.
+   - A standing `## Open items` checklist, edited **in place, never rewritten wholesale**: `- [ ] <item> (source; date)`.
+     Add an item **as it arises**, not at the end: a user question, a deferred follow-up, debt a worker found, an
+     unverified claim, a pointer, anything promised to the user. Tick or delete an item only when it is verified done and
+     you can name the evidence, never because it is old or forgotten. Check for in-flight items first: running agents,
+     dirty or unlanded trees (`git worktree list`), other live sessions that touch the plan or main tree.
+   - **Before saving at session end or compaction:** diff the plan file (delegate to the verifier agent if the diff is
+     long) and confirm every removed bullet is done-with-evidence or moved; list the removals to the user in the report.
+     Scan the session for user questions and your own "I'll ...", "still open", "next": each must be an Open item or done.
 10. **Report** the table in a few lines (landed, broken, waiting, needs-split, what the user must decide) and commit the plan
-    file with an exact-path `git add`. If ready rows remain and context is not nearly full, start the next round; stop when no row is ready or context is nearly full.
+    file with an exact-path `git add`. If the user gave more work or ready rows remain, start the next round. Otherwise
+    list what is blocked and why, one row per task; never end with only "waiting". Only when context is at the limit,
+    end by telling the user to start a fresh session with `/coordinate <ids>`.
 
 ## Worker prompt (self-contained; the worker sees nothing else)
 

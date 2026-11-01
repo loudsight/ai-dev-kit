@@ -112,7 +112,7 @@ stays exactly `@AGENTS.md`.
 
 Only if the owner says yes. See [`COORDINATOR.md`](COORDINATOR.md). Needs the commit from step 9 (worktrees cut from main must contain
 `kb/` and `AGENTS.md`), git 2.17 or later, and an agent that can start background subagents. Copy
-`kb/plans/coordinator-plan.template.md` to `coordinator-plan.md` and delete the `EXAMPLE` row. Worktrees live outside the repository
+`kb/plans/coordinator-plan.template.md` to `coordinator-plan.md` and delete the `EXAMPLE` row and `EXAMPLE` open item. Worktrees live outside the repository
 (for example `<workspace>/code/wt/`). The kit's `syn` has no `worktree-*` commands, so landing is plain git: `git -C <tree> rebase main`,
 then `git merge --ff-only <branch>`; on a conflict `git rebase --abort`, mark the row `done-unlanded` and make it a follow-up task. On
 Windows a build in a linked worktree may need `-Dmaven.gitcommitid.skip=true` if it uses the git-commit-id plugin. **[unverified]**
