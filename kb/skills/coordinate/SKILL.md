@@ -20,7 +20,7 @@ expensive. So:
   tree go to a verifier agent (below).
 - The coordinator does bookkeeping only. A coordinator that drifted into running greps, API reads, container relaunches
   and sed edits itself grew expensive. Allowed here: read and edit the plan, land and sweep worktrees, stop or message
-  agents, commit the plan, and single-line remote reads (such as `git ls-remote`). Everything else goes to an agent.
+  agents, commit the plan, and single-line remote reads (such as `git ls-remote`). Everything else goes to an agent. Any tool call beyond that list is drift: stop and dispatch. Replies to you carry named fields only (status, SHA, tree, verify, undone), never narrative.
 - Test before running anything: "could a worker do this and answer in under 5 lines?" If yes, dispatch. Right-size it:
   a read-only small model for lookups, a mid-size model for mechanical edits and verification, a stronger model only for
   design or security rows (override the template's default model for those rows).
@@ -105,6 +105,7 @@ the verify command's result (pass/fail and failing test names), anything left un
 ```
 Verify the main tree at <path>. Do not edit code or create worktrees. Run: <build/test command per module>.
 Never skip tests. Output is long: filter it for pass/fail and failure lines.
+Reply once; no restating earlier reports.
 Reply in at most 3 lines per module: pass/fail, test count, failing test names.
 ```
 
