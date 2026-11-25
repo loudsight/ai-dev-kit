@@ -67,16 +67,20 @@ It then starts two background subagents in one message. Worker prompt for T1 (T2
 You are working in an isolated git worktree (your current directory is its root, on branch t1).
 Task T1: Add docs/glossary.md with five terms, one per line.
 Touch only: docs/glossary.md. Do not fix unrelated problems; report them.
+Use one simple command per call (no chains, command substitution, heredocs or loops).
 Read the repository's AGENTS.md rules that apply. Verify with: test -s docs/glossary.md. Never skip or disable tests.
+If a hook blocks a command, read the block message: it names the remedy.
 Commit on this branch with exact-path `git add` (never `git add -A` or `git add .`).
 Do NOT push, merge, rebase onto other trees, or touch anything outside this directory.
 If you pass about 150k tokens of context, or the task is bigger than it looked, stop and reply
 `needs-split:` with a proposed split.
 Reply in at most 15 lines: status (done | blocked | needs-split), commit SHA, output of `pwd`, files changed,
-the verify command's result (pass/fail and failing test names), anything left undone.
+the verify command's result (quote the exact result line and failing test names), anything left undone,
+a `hooks:` line (none = "hooks: none") and a `facts:` line (`facts: used <docs> | none | wrong <doc>`).
 ```
 
-Each worker replies with `status: done`, a SHA, its path and `verify: pass`. The coordinator lands them one at a time:
+Each worker replies with `status: done`, a SHA, its path and the verify result line quoted exactly (a bare "verify: pass"
+is bounced back to the worker). The coordinator lands them one at a time:
 
 ```
 git -C ../wt-t1 rebase main
@@ -124,10 +128,22 @@ Table after (`<sha>` is what `git log --oneline -1` shows on main right after th
   `done-unlanded`, and make the conflict a follow-up task.
 - Tasks that touch the same files run one after another. A task that does not fit about 150k tokens of context is split.
 - Never push from the coordinator unless you decide to; landing is local.
+- Land only on a quoted verify result line. A claim is only as strong as its evidence: a check that could not run is
+  *unproven*, recorded as an Open item, never reported as done. Spot-check the load-bearing parts of a worker's report.
+- The coordinator does bookkeeping only (plan edits, landing, sweeping trees, committing the plan). Everything else,
+  including moving finished items out of the plan (the sweep), is a worker task.
+- A round that dispatches nothing is a stall, not a report: ask the user, in one batched question, about every blocked or
+  waiting item, with a recommendation first.
+- Every command is one simple command per call: a chained command that a permission prompt refuses runs nothing at all.
 
 ## What to watch
 
-- **Context.** End the session near 150k tokens or after any compaction and start a fresh one; the plan file carries the state.
+- **Context.** Keep going while context is under about 150k and the last call was under about 55 minutes ago (a call after the
+  prompt cache expires re-pays for the whole context). Past about 150k, stop dispatching, land what is verified, write the
+  handover, commit the plan and start a fresh session before auto-compaction fires; the plan file carries the state.
+- **Plan size.** The plan is re-read at every start, so keep it small (about 40 KB at most): finished items go to a dated
+  archive file via a sweep worker, and each item stays about 300 characters.
+- **Hooks.** A hook block names its own remedy; the usual one is the whole-file read guard, answered by grep or a ranged read.
 - **Collisions.** Besides files, parallel trees share anything outside the checkout: ports, container names, a shared build
   cache. Run those tasks one at a time.
 - **Leftovers.** `git worktree list` should show only the main tree when a round ends cleanly.
