@@ -27,6 +27,13 @@ until every call is expensive. The coordinator skill keeps a task table in a fil
 background worker, lands results one at a time, and ends the session when context is large. See
 [COORDINATOR.md](COORDINATOR.md). *Cost:* tasks must be independent and small; you write the verify command for each.
 
+## `kb/skills/handover/`: pausing a long session
+
+*Failure:* a coordinator session is ended mid-push, mid-deploy or with workers still running, and the next session trusts a
+stale summary. The handover skill stops intake, waits for each live agent to reach a safe-to-pause state, reconciles trees and
+pushes, and writes a state-only handover with per-item resume instructions that the next session re-checks before acting.
+*Cost:* a few minutes of waiting and one extra file in `kb/plans`.
+
 ## `tools/syn/`: the task CLI
 
 *Failure:* a task that takes four commands and a looked-up flag is rediscovered every session. A `syn` command has a name, a
