@@ -17,6 +17,11 @@ name. This directory is all a repository needs to use it. Nothing here becomes p
    (`session-list-open`). `plugins.dir` moves the plugin directory. Any key can be overridden for one run with
    `-Dsyn.<key>=...`.
 
+   **Opt-in publishing block (syn 0.0.4):** `publish-check-private` and its hooks no longer refuse commits or pushes by time of
+   day. To block certain times on a public repository, set the `publish.block-*` keys (see the `publish-install-hooks` and
+   `publish-check-private` class comments in `syn-plugin-kit` for the exact names and formats) in the `.syn/config.properties` of
+   the repository that owns the schedule. Without those keys nothing is blocked. This kit sets none.
+
 ## Your own commands
 
 The full contract, with a tested example: [`docs/PLUGIN_SPI.md`](../docs/PLUGIN_SPI.md).
